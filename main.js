@@ -126,9 +126,9 @@ class CustomKeyframeEffect {
 class WelcomePage extends CustomHTMLElement {
   connectedCallback() {
     this.welcome_title = this.querySelector(".welcome-title");
-    this.welcome_description = this.querySelector('.welcome-description');
-    this.welcome_btn = this.querySelector('.btn');
-    this.description_container = this.querySelector('.description-container');
+    this.welcome_description = this.querySelector(".welcome-description");
+    this.welcome_btn = this.querySelector(".btn");
+    this.description_container = this.querySelector(".description-container");
     this.welcome_title.textContent = data.welcomePage.title;
     this.welcome_description.textContent = data.welcomePage.description;
     this.welcome_btn.textContent = data.welcomePage.buttonText;
@@ -137,22 +137,193 @@ class WelcomePage extends CustomHTMLElement {
   }
 
   transitionToEnter() {
-    const elements = [this.welcome_title, this.description_container, this.welcome_btn];
+    const elements = [
+      this.welcome_title,
+      this.description_container,
+      this.welcome_btn,
+    ];
     elements.forEach((element, i) => {
-        element.style.opacity = 0;
-        const animation = new CustomAnimation(
-            new CustomKeyframeEffect(
-              element,
-              {
-                opacity: [0, 1],
-                transform: ["translateX(100px)", "translateX(0)"],
-              },
-              { duration: 400, delay: i * 200, fill: "forwards" }
-            )
-          );
-          animation.play();
-    })
+      element.style.opacity = 0;
+      const animation = new CustomAnimation(
+        new CustomKeyframeEffect(
+          element,
+          {
+            opacity: [0, 1],
+            transform: ["translateX(100px)", "translateX(0)"],
+          },
+          { duration: 400, delay: i * 200, fill: "forwards" }
+        )
+      );
+      animation.play();
+    });
   }
 }
 
 window.customElements.define("welcome-page", WelcomePage);
+
+class SurveyPage extends CustomHTMLElement {
+  connectedCallback() {
+    this.answers = [];
+    this.selectedOption = null;
+    this.currentQuestion = 0;
+    this.survey_title = this.querySelector(".survey-title");
+    this.survey_question = this.querySelector(".survey-question");
+    this.survey_options_container = this.querySelector(".survey-options");
+    this.survey_btn = this.querySelector(".btn");
+    this.steps_container = this.querySelector(".steps");
+    this.createSteps();
+    this.showCurrentQuestion();
+
+    this.survey_title.textContent = data.surveyName;
+    this.survey_options_container.addEventListener("click", (event) => {
+      if (event.target.classList.contains("survey-option")) {
+        this.selectOption(event.target.textContent);
+      }
+    });
+
+    this.steps_container.addEventListener("click", (event) => {
+      if (event.target.classList.contains("step")) {
+        this.selectQuestion(parseInt(event.target.textContent) - 1);
+      }
+    });
+
+    this.survey_btn.addEventListener(
+      "click",
+      this.handleContinueBtn.bind(this)
+    );
+  }
+
+  showCurrentQuestion() {
+    const question = data.steps[this.currentQuestion];
+    this.survey_question.textContent = question.question;
+    this.survey_btn.setAttribute("disabled", true);
+    this.createOptions(question);
+    this.setActiveStep();
+    this.transtionToEnter();
+    if (this.selectedOption) {
+      this.selectOption(this.selectedOption);
+    }
+  }
+
+  async nextQuestion() {
+    await this.transitionToLeave();
+    this.currentQuestion++;
+    this.showCurrentQuestion();
+    this.setAnsweredSteps();
+  }
+
+  async selectQuestion(index) {
+    if (this.answers.length < index) return;
+    await this.transitionToLeave();
+    this.currentQuestion = index;
+    this.showCurrentQuestion();
+    this.selectOption(this.answers[index]);
+  }
+  createSteps() {
+    const steps = data.steps.map((step) => {
+      const stepElement = document.createElement("div");
+      stepElement.className = "step";
+      stepElement.textContent = step.stepNumber;
+      return stepElement;
+    });
+    this.steps = steps;
+    this.steps_container.innerHTML = "";
+    steps.forEach((step) => {
+      this.steps_container.appendChild(step);
+    });
+  }
+  setActiveStep() {
+    this.steps.forEach((step) => {
+      step.classList.remove("active");
+    });
+    this.steps[this.currentQuestion].classList.add("active");
+  }
+  setAnsweredSteps() {
+    this.steps.forEach((step, index) => {
+      if (index + 1 <= this.answers.length) {
+        step.classList.add("selected");
+      }
+    });
+  }
+  createOptions(question) {
+    const options = question.options.map((option) => {
+      const optionElement = document.createElement("div");
+      optionElement.className = "survey-option";
+      optionElement.textContent = option;
+      return optionElement;
+    });
+    this.survey_options = options;
+    this.survey_options_container.innerHTML = "";
+    options.forEach((option) => {
+      this.survey_options_container.appendChild(option);
+    });
+  }
+
+  selectOption(option) {
+    this.selectedOption = option;
+    this.survey_options.forEach((option) => {
+      if (option.textContent === this.selectedOption) {
+        option.classList.add("selected");
+      } else {
+        option.classList.remove("selected");
+      }
+    });
+    this.survey_btn.removeAttribute("disabled");
+  }
+
+  handleContinueBtn() {
+    // if user come back to previous question and select new answer
+    if (this.answers[this.currentQuestion]) {
+      this.answers[this.currentQuestion] = this.selectedOption;
+      this.selectOption(this.answers[this.currentQuestion+1]);
+    } else {
+      this.answers.push(this.selectedOption);
+    }
+    if (this.currentQuestion < data.steps.length - 1) {
+      this.nextQuestion();
+    } else {
+      //   this.finish();
+    }
+  }
+  transtionToEnter() {
+    const elements = [this.survey_question, this.survey_options_container];
+    elements.forEach((element, i) => {
+      element.style.opacity = 0;
+      const animation = new CustomAnimation(
+        new CustomKeyframeEffect(
+          element,
+          {
+            opacity: [0, 1],
+            transform: ["translateX(100px)", "translateX(0)"],
+          },
+          { duration: 400, delay: i * 200, fill: "forwards" }
+        )
+      );
+      animation.play();
+    });
+  }
+
+  transitionToLeave() {
+    const elements = [this.survey_question, this.survey_options_container];
+
+    let result = elements.map((element, i) => {
+      element.style.opacity = 1;
+      const animation = new CustomAnimation(
+        new CustomKeyframeEffect(
+          element,
+          {
+            opacity: [1, 0],
+            transform: ["translateX(0)", "translateX(-100px)"],
+          },
+          { duration: 400, delay: i * 200, fill: "forwards" }
+        )
+      );
+      animation.play();
+      return animation.finished;
+    });
+
+    return Promise.all(result);
+  }
+}
+
+window.customElements.define("survey-page", SurveyPage);
