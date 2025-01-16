@@ -1,0 +1,79 @@
+/* Resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+  font-family: "Roboto", sans-serif;
+}
+
+body {
+  height: 100vh;
+}
+/* General */
+.container {
+  width: 100%;
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.btn {
+  display: inline-block;
+  font-size: 1.6rem;
+  font-weight: 500;
+  padding: 1.5rem 3rem;
+  border-radius: 3rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 10px;
+}
+
+.btn--primary {
+  color: #fff;
+  background-color: #f38f87;
+}
+
+/* Welcome page */
+
+.welcome {
+  display: block;
+  background-image: url("./assets/welcome-bg.png");
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  padding: 8rem 0;
+}
+
+.welcome-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  height: 100%;
+}
+
+.welcome-title {
+  font-size: 3.2rem;
+  color: rgb(84, 84, 84);
+  font-weight: 400;
+  text-align: center;
+  line-height: normal;
+}
+
+.welcome-description {
+  font-size: 1.6rem;
+  color: rgb(84, 84, 84);
+  font-weight: 400;
+  margin: 1.5rem 0;
+  text-align: center;
+  line-height: 2.6rem;
+}

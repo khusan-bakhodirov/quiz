@@ -1,0 +1,94 @@
+{
+  "surveyName": "Skin Type Assessment",
+  "welcomePage": {
+    "title": "Discover Your Perfect Skincare Routine",
+    "description": "Take our quick 6-step survey to understand your unique skin type and get personalized product recommendations",
+    "buttonText": "Start Survey"
+  },
+  "steps": [
+    {
+      "stepNumber": 1,
+      "question": "What is your primary skin concern?",
+      "type": "singleSelect",
+      "options": [
+        "Acne and Breakouts",
+        "Aging and Wrinkles",
+        "Dryness",
+        "Oiliness",
+        "Sensitivity",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    },
+    {
+      "stepNumber": 2,
+      "question": "How does your skin feel by midday?",
+      "type": "singleSelect",
+      "options": [
+        "Very Oily",
+        "Slightly Shiny",
+        "Balanced",
+        "Dry and Tight",
+        "Feels Uncomfortable",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    },
+    {
+      "stepNumber": 3,
+      "question": "How often do you experience skin irritation?",
+      "type": "singleSelect",
+      "options": [
+        "Frequently",
+        "Occasionally",
+        "Rarely",
+        "Never",
+        "Only with certain products",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    },
+    {
+      "stepNumber": 4,
+      "question": "What is your age range?",
+      "type": "singleSelect",
+      "options": [
+        "18-24",
+        "25-34",
+        "35-44",
+        "45-54",
+        "55+",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    },
+    {
+      "stepNumber": 5,
+      "question": "How would you describe your skin texture?",
+      "type": "singleSelect",
+      "options": [
+        "Smooth and Even",
+        "Rough and Uneven",
+        "Combination",
+        "Visibly Porous",
+        "Prone to Redness",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    },
+    {
+      "stepNumber": 6,
+      "question": "What is your primary skincare goal?",
+      "type": "singleSelect",
+      "options": [
+        "Hydration",
+        "Anti-Aging",
+        "Acne Control",
+        "Even Skin Tone",
+        "Minimizing Pores",
+        "None of the above"
+      ],
+      "hasOtherOption": true
+    }
+  ]
+}
