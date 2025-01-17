@@ -163,9 +163,9 @@ window.customElements.define("welcome-page", WelcomePage);
 
 class SurveyPage extends CustomHTMLElement {
   connectedCallback() {
-    this.answers = [];
-    this.selectedOption = null;
-    this.currentQuestion = 0;
+    this.answers = JSON.parse(localStorage.getItem("answers")) || [];
+    this.currentQuestion = this.answers.length >= 1 ? this.answers.length -1 : 0;
+    this.selectedOption = this.answers[this.currentQuestion] || null;
     this.survey_title = this.querySelector(".survey-title");
     this.survey_question = this.querySelector(".survey-question");
     this.survey_options_container = this.querySelector(".survey-options");
@@ -173,6 +173,7 @@ class SurveyPage extends CustomHTMLElement {
     this.prev_btn = this.querySelector(".prev");
     this.steps_container = this.querySelector(".steps");
     this.createSteps();
+    this.setAnsweredSteps();
     this.showCurrentQuestion();
 
     this.survey_title.textContent = data.surveyName;
@@ -337,6 +338,7 @@ class SurveyPage extends CustomHTMLElement {
       this.answers.push(this.selectedOption);
       this.selectedOption = null;
     }
+    localStorage.setItem('answers', JSON.stringify(this.answers));
     if (this.currentQuestion < data.steps.length - 1) {
       this.nextQuestion();
     } else {
