@@ -217,3 +217,10 @@ body {
 .expandable-button[expanded="true"] {
   max-height: 1000px;
 }
+.btn.finish {
+  display: none;
+}
+
+.btn.finish.active {
+  display: block;
+}

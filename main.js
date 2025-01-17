@@ -164,13 +164,14 @@ window.customElements.define("welcome-page", WelcomePage);
 class SurveyPage extends CustomHTMLElement {
   connectedCallback() {
     this.answers = JSON.parse(localStorage.getItem("answers")) || [];
-    this.currentQuestion = this.answers.length >= 1 ? this.answers.length -1 : 0;
+    this.currentQuestion = this.answers.length >= 1 ? this.answers.length - 1: 0;
     this.selectedOption = this.answers[this.currentQuestion] || null;
     this.survey_title = this.querySelector(".survey-title");
     this.survey_question = this.querySelector(".survey-question");
     this.survey_options_container = this.querySelector(".survey-options");
     this.next_btn = this.querySelector(".next");
     this.prev_btn = this.querySelector(".prev");
+    this.finish_btn =  this.querySelector(".finish");
     this.steps_container = this.querySelector(".steps");
     this.createSteps();
     this.setAnsweredSteps();
@@ -326,11 +327,11 @@ class SurveyPage extends CustomHTMLElement {
       });
       document.dispatchEvent(event);
     }
-
-    this.next_btn.removeAttribute("disabled");
+    this.next_btn.removeAttribute("disabled"); 
   }
 
   handleContinueBtn() {
+
     // if user come back to previous question and select new answer
     if (this.answers[this.currentQuestion]) {
       this.answers[this.currentQuestion] = this.selectedOption;
@@ -339,10 +340,13 @@ class SurveyPage extends CustomHTMLElement {
       this.selectedOption = null;
     }
     localStorage.setItem('answers', JSON.stringify(this.answers));
+    if(this.currentQuestion === data.steps.length - 1){
+      this.finish_btn.removeAttribute("disabled");
+      this.finish_btn.classList.add("active");
+      this.next_btn.setAttribute("disabled", true);
+    }
     if (this.currentQuestion < data.steps.length - 1) {
       this.nextQuestion();
-    } else {
-      //   this.finish();
     }
   }
   EnableDisablePrevButton() {
