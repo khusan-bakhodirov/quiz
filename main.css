@@ -258,3 +258,22 @@ body {
   margin-top: 1.5rem;
   gap: 1rem;
 }
+
+
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 50%;
+  }
+
+  .survey-option {
+    width: 90%;
+  }
+
+  .answers-container {
+    grid-template-columns: 1fr;
+  }
+  .results-btn-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}
