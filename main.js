@@ -224,9 +224,6 @@ class SurveyPage extends CustomHTMLElement {
       this.selectOption(this.selectedOption);
     }
 
-    if(this.answers.length === data.steps.length) {
-      this.finish_btn.classList.add("active");
-    }
   }
 
   async nextQuestion() {
