@@ -3,12 +3,6 @@ class CustomHTMLElement extends HTMLElement {
   constructor() {
     super();
   }
-  showLoadingBar() {
-    triggerEvent(document.documentElement, "theme:loading:start");
-  }
-  hideLoadingBar() {
-    triggerEvent(document.documentElement, "theme:loading:end");
-  }
   untilVisible(
     intersectionObserverOptions = { rootMargin: "30px 0px", threshold: 0 }
   ) {
@@ -45,16 +39,7 @@ class CustomAnimation {
   get finished() {
     return this._finished;
   }
-  get animationEffects() {
-    return this._effect instanceof CustomKeyframeEffect
-      ? [this._effect]
-      : this._effect.animationEffects;
-  }
-  cancel() {
-    this.animationEffects.forEach((animationEffect) =>
-      animationEffect.cancel()
-    );
-  }
+
   finish() {
     this.animationEffects.forEach((animationEffect) =>
       animationEffect.finish()
@@ -224,9 +209,6 @@ class SurveyPage extends CustomHTMLElement {
       this.selectOption(this.selectedOption);
     }
 
-    if(this.answers.length === data.steps.length) {
-      this.finish_btn.classList.add("active");
-    }
   }
 
   async nextQuestion() {
