@@ -213,7 +213,9 @@ class SurveyPage extends CustomHTMLElement {
     const question = data.steps[this.currentQuestion];
     this.survey_question.textContent = question.question;
     this.next_btn.setAttribute("disabled", true);
+    this.next_btn.setAttribute("aria-disabled", "true");
     this.prev_btn.removeAttribute("disabled");
+    this.prev_btn.setAttribute('aria-disabled', 'true');
     this.createOptions(question);
     this.setActiveStep();
     this.EnableDisablePrevButton();
@@ -238,6 +240,7 @@ class SurveyPage extends CustomHTMLElement {
   async prevQuestion() {
     if (this.currentQuestion <= 0) return;
     this.prev_btn.setAttribute("disabled", true);
+    this.prev_btn.setAttribute("aria-disabled", "true");
     await this.transitionToLeave();
     this.currentQuestion--;
     this.selectedOption = this.answers[this.currentQuestion];
@@ -249,14 +252,18 @@ class SurveyPage extends CustomHTMLElement {
     if (this.answers.length < index) return;
     await this.transitionToLeave();
     this.currentQuestion = index;
+    this.steps[this.currentQuestion].setAttribute("aria-selected", true);
     this.selectedOption = this.answers[index];
     this.showCurrentQuestion();
   }
   createSteps() {
-    const steps = data.steps.map((step) => {
+    const steps = data.steps.map((step,i) => {
       const stepElement = document.createElement("div");
       stepElement.className = "step";
       stepElement.textContent = step.stepNumber;
+      stepElement.setAttribute("tabindex", i);
+      stepElement.setAttribute("aria-selected", i === this.currentQuestion);
+      stepElement.setAttribute("aria-label", `Go to step ${step.stepNumber}`);
       return stepElement;
     });
     this.steps = steps;
@@ -286,13 +293,14 @@ class SurveyPage extends CustomHTMLElement {
         const optionElement = document.createElement("div");
         optionElement.className = "survey-option";
         optionElement.textContent = option;
+        optionElement.setAttribute("aria-label", `Select ${option}`);
         const otherOptionInput = document.createElement("input");
         otherOptionInput.type = "text";
         otherOptionInput.placeholder = "Other";
         otherOptionInput.className = "survey-other-option";
         expandableButton.appendChild(optionElement);
         expandableButton.appendChild(otherOptionInput);
-
+        expandableButton.setAttribute("aria-expanded", "false");
         return expandableButton;
       } else {
         const optionElement = document.createElement("div");
@@ -332,10 +340,12 @@ class SurveyPage extends CustomHTMLElement {
       document.dispatchEvent(event);
     }
     this.next_btn.removeAttribute("disabled");
+    this.next_btn.setAttribute("aria-disabled", false);
   }
 
   handleContinueBtn() {
     this.next_btn.setAttribute("disabled", true);
+    this.next_btn.setAttribute("aria-disabled", true);
     // if user come back to previous question and select new answer
     if (this.answers[this.currentQuestion]) {
       this.answers[this.currentQuestion] = this.selectedOption;
@@ -348,7 +358,8 @@ class SurveyPage extends CustomHTMLElement {
     if (this.currentQuestion === data.steps.length - 1) {
       this.finish_btn.removeAttribute("disabled");
       this.finish_btn.classList.add("active");
-      this.next_btn.setAttribute("disabled", true);
+      this.next_btn.setAttribute("disabled", true)
+      this.next_btn.setAttribute("aria-disabled", true);
     }
     if (this.currentQuestion < data.steps.length - 1) {
       this.nextQuestion();
@@ -357,13 +368,16 @@ class SurveyPage extends CustomHTMLElement {
   EnableDisablePrevButton() {
     if (this.currentQuestion === 0) {
       this.prev_btn.setAttribute("disabled", true);
+      this.prev_btn.setAttribute("aria-disabled", true);
     } else {
       this.prev_btn.removeAttribute("disabled");
+      this.prev_btn.setAttribute("aria-disabled", false);
     }
   }
 
   handleNextDisabled() {
     this.next_btn.setAttribute("disabled", true);
+    this.next_btn.setAttribute("aria-disabled", true);
     this.selectedOption = null;
     this.survey_options.forEach((option) => {
       option.classList.remove("selected");
@@ -371,6 +385,7 @@ class SurveyPage extends CustomHTMLElement {
   }
   handleNextEnabled() {
     this.next_btn.removeAttribute("disabled");
+    this.next_btn.setAttribute("aria-disabled", false);
   }
   handleAnswerChange(e) {
     this.selectedOption = e.detail;
@@ -454,11 +469,13 @@ class expandableButton extends CustomHTMLElement {
   }
   handleButtonExpand() {
     this.setAttribute("expanded", "true");
+    this.setAttribute('aria-expanded', 'true');
     const event = new CustomEvent("next:disabled");
     document.dispatchEvent(event);
   }
   handleButtonClose() {
     this.removeAttribute("expanded");
+    this.setAttribute('aria-expanded', 'false');
     const event = new CustomEvent("next:disabled");
     document.dispatchEvent(event);
   }
@@ -466,6 +483,7 @@ class expandableButton extends CustomHTMLElement {
   handleButtonOpen(e) {
     this.input.value = e.detail;
     this.setAttribute("expanded", "true");
+    this.setAttribute('aria-expanded', 'true');
   }
 }
 
@@ -500,6 +518,7 @@ class ResultsPage extends CustomHTMLElement {
       const answer_element = document.createElement("div");
       const edit_btn = document.createElement("button");
       edit_btn.textContent = "Edit";
+      edit_btn.setAttribute("aria-label", `Edit question ${i + 1}`);
       edit_btn.classList.add("btn", "btn--primary", "btn--small");
       edit_btn.addEventListener("click", () => {
         localStorage.setItem('currentQuestion', i);
