@@ -169,7 +169,8 @@ class SurveyPage extends CustomHTMLElement {
     this.survey_title = this.querySelector(".survey-title");
     this.survey_question = this.querySelector(".survey-question");
     this.survey_options_container = this.querySelector(".survey-options");
-    this.survey_btn = this.querySelector(".btn");
+    this.next_btn = this.querySelector(".next");
+    this.prev_btn = this.querySelector(".prev");
     this.steps_container = this.querySelector(".steps");
     this.createSteps();
     this.showCurrentQuestion();
@@ -187,7 +188,11 @@ class SurveyPage extends CustomHTMLElement {
       }
     });
 
-    this.survey_btn.addEventListener(
+    this.prev_btn.addEventListener(
+      "click",
+      this.prevQuestion.bind(this)
+    );
+    this.next_btn.addEventListener(
       "click",
       this.handleContinueBtn.bind(this)
     );
@@ -196,9 +201,10 @@ class SurveyPage extends CustomHTMLElement {
   showCurrentQuestion() {
     const question = data.steps[this.currentQuestion];
     this.survey_question.textContent = question.question;
-    this.survey_btn.setAttribute("disabled", true);
+    this.next_btn.setAttribute("disabled", true);
     this.createOptions(question);
     this.setActiveStep();
+    this.EnableDisablePrevButton();
     this.transtionToEnter();
     if (this.selectedOption) {
       this.selectOption(this.selectedOption);
@@ -211,13 +217,22 @@ class SurveyPage extends CustomHTMLElement {
     this.showCurrentQuestion();
     this.setAnsweredSteps();
   }
+  async prevQuestion() {
+    if(this.currentQuestion <= 0) return;
+    await this.transitionToLeave();
+    this.currentQuestion--;
+    this.selectedOption = this.answers[this.currentQuestion];
+    this.showCurrentQuestion();
+    this.setAnsweredSteps();
+  }
+
 
   async selectQuestion(index) {
     if (this.answers.length < index) return;
     await this.transitionToLeave();
     this.currentQuestion = index;
+    this.selectedOption = this.answers[index];
     this.showCurrentQuestion();
-    this.selectOption(this.answers[index]);
   }
   createSteps() {
     const steps = data.steps.map((step) => {
@@ -268,7 +283,7 @@ class SurveyPage extends CustomHTMLElement {
         option.classList.remove("selected");
       }
     });
-    this.survey_btn.removeAttribute("disabled");
+    this.next_btn.removeAttribute("disabled");
   }
 
   handleContinueBtn() {
@@ -283,6 +298,13 @@ class SurveyPage extends CustomHTMLElement {
       this.nextQuestion();
     } else {
       //   this.finish();
+    }
+  }
+  EnableDisablePrevButton() {
+    if(this.currentQuestion === 0){
+      this.prev_btn.setAttribute("disabled", true);
+    }else {
+      this.prev_btn.removeAttribute("disabled");
     }
   }
   transtionToEnter() {
