@@ -47,7 +47,10 @@ body {
   color: #fff;
   background-color: #f38f87;
 }
-
+.btn--small {
+  padding: 1rem 2rem;
+  font-size: 1.4rem;
+}
 /* Welcome page */
 
 .page {
@@ -223,4 +226,35 @@ body {
 
 .btn.finish.active {
   display: block;
+}
+
+/* Results */
+
+.results-wrapper {
+  padding: 8rem 0;
+} 
+
+.answers-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin: 2rem;
+}
+
+.answer {
+  padding: 1rem;
+  border: 1px solid #e6e3e3;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 2.6rem;
+  color: #545454;
+  display: flex;
+  justify-content: space-between;
+}
+
+.results-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  gap: 1rem;
 }

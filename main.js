@@ -164,19 +164,18 @@ window.customElements.define("welcome-page", WelcomePage);
 class SurveyPage extends CustomHTMLElement {
   connectedCallback() {
     this.answers = JSON.parse(localStorage.getItem("answers")) || [];
-    this.currentQuestion = this.answers.length >= 1 ? this.answers.length - 1: 0;
+    this.currentQuestion = JSON.parse(localStorage.getItem("currentQuestion")) || 0;
     this.selectedOption = this.answers[this.currentQuestion] || null;
     this.survey_title = this.querySelector(".survey-title");
     this.survey_question = this.querySelector(".survey-question");
     this.survey_options_container = this.querySelector(".survey-options");
     this.next_btn = this.querySelector(".next");
     this.prev_btn = this.querySelector(".prev");
-    this.finish_btn =  this.querySelector(".finish");
+    this.finish_btn = this.querySelector(".finish");
     this.steps_container = this.querySelector(".steps");
     this.createSteps();
     this.setAnsweredSteps();
     this.showCurrentQuestion();
-
     this.survey_title.textContent = data.surveyName;
     this.survey_options_container.addEventListener("click", (event) => {
       if (
@@ -214,12 +213,17 @@ class SurveyPage extends CustomHTMLElement {
     const question = data.steps[this.currentQuestion];
     this.survey_question.textContent = question.question;
     this.next_btn.setAttribute("disabled", true);
+    this.prev_btn.removeAttribute("disabled");
     this.createOptions(question);
     this.setActiveStep();
     this.EnableDisablePrevButton();
     this.transtionToEnter();
     if (this.selectedOption) {
       this.selectOption(this.selectedOption);
+    }
+
+    if(this.answers.length === data.steps.length) {
+      this.finish_btn.classList.add("active");
     }
   }
 
@@ -233,6 +237,7 @@ class SurveyPage extends CustomHTMLElement {
   }
   async prevQuestion() {
     if (this.currentQuestion <= 0) return;
+    this.prev_btn.setAttribute("disabled", true);
     await this.transitionToLeave();
     this.currentQuestion--;
     this.selectedOption = this.answers[this.currentQuestion];
@@ -272,7 +277,6 @@ class SurveyPage extends CustomHTMLElement {
         step.classList.add("selected");
       }
     });
-    console.log(this.answers);
   }
   createOptions(question) {
     const options = question.options.map((option, index) => {
@@ -327,11 +331,11 @@ class SurveyPage extends CustomHTMLElement {
       });
       document.dispatchEvent(event);
     }
-    this.next_btn.removeAttribute("disabled"); 
+    this.next_btn.removeAttribute("disabled");
   }
 
   handleContinueBtn() {
-
+    this.next_btn.setAttribute("disabled", true);
     // if user come back to previous question and select new answer
     if (this.answers[this.currentQuestion]) {
       this.answers[this.currentQuestion] = this.selectedOption;
@@ -339,8 +343,9 @@ class SurveyPage extends CustomHTMLElement {
       this.answers.push(this.selectedOption);
       this.selectedOption = null;
     }
-    localStorage.setItem('answers', JSON.stringify(this.answers));
-    if(this.currentQuestion === data.steps.length - 1){
+    localStorage.setItem("answers", JSON.stringify(this.answers));
+    localStorage.setItem("currentQuestion", this.currentQuestion+ 1);
+    if (this.currentQuestion === data.steps.length - 1) {
       this.finish_btn.removeAttribute("disabled");
       this.finish_btn.classList.add("active");
       this.next_btn.setAttribute("disabled", true);
@@ -465,3 +470,47 @@ class expandableButton extends CustomHTMLElement {
 }
 
 window.customElements.define("expandable-button", expandableButton);
+
+class ResultsPage extends CustomHTMLElement {
+  connectedCallback() {
+    this.again_btn = this.querySelector(".again");
+    this.share_btn = this.querySelector(".share");
+    this.answers = JSON.parse(localStorage.getItem("answers"));
+    this.answers_container = this.querySelector(".answers-container");
+    this.createAnswers();
+    this.again_btn.addEventListener("click", this.again.bind(this));
+    this.share_btn.addEventListener("click", this.share.bind(this));
+  }
+
+  again() {
+    localStorage.removeItem("answers");
+    localStorage.removeItem("currentQuestion");
+    window.location.href = "survey.html";
+  }
+
+  share() {
+    navigator.share({
+      title: "Survey Results",
+      text: "Check out my survey results!",
+      url: window.location.href,
+    })
+  }
+  createAnswers() {
+    this.answers.forEach((answer, i) => {
+      const answer_element = document.createElement("div");
+      const edit_btn = document.createElement("button");
+      edit_btn.textContent = "Edit";
+      edit_btn.classList.add("btn", "btn--primary", "btn--small");
+      edit_btn.addEventListener("click", () => {
+        localStorage.setItem('currentQuestion', i);
+        window.location.href = "survey.html";
+      })
+      answer_element.classList.add("answer");
+      answer_element.textContent = `Question ${i + 1}: ${answer}`;
+      answer_element.appendChild(edit_btn);
+      this.answers_container.appendChild(answer_element);
+    });
+  }
+}
+
+window.customElements.define("results-page", ResultsPage);
