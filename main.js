@@ -177,7 +177,10 @@ class SurveyPage extends CustomHTMLElement {
 
     this.survey_title.textContent = data.surveyName;
     this.survey_options_container.addEventListener("click", (event) => {
-      if (event.target.classList.contains("survey-option")) {
+      if (
+        event.target.classList.contains("survey-option") &&
+        !event.target.closest("expandable-button")
+      ) {
         this.selectOption(event.target.textContent);
       }
     });
@@ -188,13 +191,20 @@ class SurveyPage extends CustomHTMLElement {
       }
     });
 
-    this.prev_btn.addEventListener(
-      "click",
-      this.prevQuestion.bind(this)
+    this.prev_btn.addEventListener("click", this.prevQuestion.bind(this));
+    this.next_btn.addEventListener("click", this.handleContinueBtn.bind(this));
+
+    document.addEventListener(
+      "answer:changed",
+      this.handleAnswerChange.bind(this)
     );
-    this.next_btn.addEventListener(
-      "click",
-      this.handleContinueBtn.bind(this)
+    document.addEventListener(
+      "next:disabled",
+      this.handleNextDisabled.bind(this)
+    );
+    document.addEventListener(
+      "next:enabled",
+      this.handleNextEnabled.bind(this)
     );
   }
 
@@ -214,18 +224,19 @@ class SurveyPage extends CustomHTMLElement {
   async nextQuestion() {
     await this.transitionToLeave();
     this.currentQuestion++;
+    this.selectedOption = this.answers[this.currentQuestion];
+    if (this.selectOption) this.selectOption(this.selectedOption);
     this.showCurrentQuestion();
     this.setAnsweredSteps();
   }
   async prevQuestion() {
-    if(this.currentQuestion <= 0) return;
+    if (this.currentQuestion <= 0) return;
     await this.transitionToLeave();
     this.currentQuestion--;
     this.selectedOption = this.answers[this.currentQuestion];
     this.showCurrentQuestion();
     this.setAnsweredSteps();
   }
-
 
   async selectQuestion(index) {
     if (this.answers.length < index) return;
@@ -259,13 +270,30 @@ class SurveyPage extends CustomHTMLElement {
         step.classList.add("selected");
       }
     });
+    console.log(this.answers);
   }
   createOptions(question) {
-    const options = question.options.map((option) => {
-      const optionElement = document.createElement("div");
-      optionElement.className = "survey-option";
-      optionElement.textContent = option;
-      return optionElement;
+    const options = question.options.map((option, index) => {
+      if (question.hasOtherOption && index === question.options.length - 1) {
+        const expandableButton = document.createElement("expandable-button");
+        expandableButton.className = "expandable-button";
+        const optionElement = document.createElement("div");
+        optionElement.className = "survey-option";
+        optionElement.textContent = option;
+        const otherOptionInput = document.createElement("input");
+        otherOptionInput.type = "text";
+        otherOptionInput.placeholder = "Other";
+        otherOptionInput.className = "survey-other-option";
+        expandableButton.appendChild(optionElement);
+        expandableButton.appendChild(otherOptionInput);
+
+        return expandableButton;
+      } else {
+        const optionElement = document.createElement("div");
+        optionElement.className = "survey-option";
+        optionElement.textContent = option;
+        return optionElement;
+      }
     });
     this.survey_options = options;
     this.survey_options_container.innerHTML = "";
@@ -275,14 +303,29 @@ class SurveyPage extends CustomHTMLElement {
   }
 
   selectOption(option) {
+    // close expandable button if it is open
+    const event = new CustomEvent("expandable-button:close");
+    document.dispatchEvent(event);
     this.selectedOption = option;
-    this.survey_options.forEach((option) => {
-      if (option.textContent === this.selectedOption) {
-        option.classList.add("selected");
-      } else {
-        option.classList.remove("selected");
-      }
-    });
+    if (
+      this.survey_options.some(
+        (option) => option.textContent === this.selectedOption
+      )
+    ) {
+      this.survey_options.forEach((option) => {
+        if (option.textContent === this.selectedOption) {
+          option.classList.add("selected");
+        } else {
+          option.classList.remove("selected");
+        }
+      });
+    } else {
+      const event = new CustomEvent("expandable-button:open", {
+        detail: this.selectedOption,
+      });
+      document.dispatchEvent(event);
+    }
+
     this.next_btn.removeAttribute("disabled");
   }
 
@@ -290,9 +333,9 @@ class SurveyPage extends CustomHTMLElement {
     // if user come back to previous question and select new answer
     if (this.answers[this.currentQuestion]) {
       this.answers[this.currentQuestion] = this.selectedOption;
-      this.selectOption(this.answers[this.currentQuestion+1]);
     } else {
       this.answers.push(this.selectedOption);
+      this.selectedOption = null;
     }
     if (this.currentQuestion < data.steps.length - 1) {
       this.nextQuestion();
@@ -301,11 +344,25 @@ class SurveyPage extends CustomHTMLElement {
     }
   }
   EnableDisablePrevButton() {
-    if(this.currentQuestion === 0){
+    if (this.currentQuestion === 0) {
       this.prev_btn.setAttribute("disabled", true);
-    }else {
+    } else {
       this.prev_btn.removeAttribute("disabled");
     }
+  }
+
+  handleNextDisabled() {
+    this.next_btn.setAttribute("disabled", true);
+    this.selectedOption = null;
+    this.survey_options.forEach((option) => {
+      option.classList.remove("selected");
+    });
+  }
+  handleNextEnabled() {
+    this.next_btn.removeAttribute("disabled");
+  }
+  handleAnswerChange(e) {
+    this.selectedOption = e.detail;
   }
   transtionToEnter() {
     const elements = [this.survey_question, this.survey_options_container];
@@ -349,3 +406,56 @@ class SurveyPage extends CustomHTMLElement {
 }
 
 window.customElements.define("survey-page", SurveyPage);
+
+class expandableButton extends CustomHTMLElement {
+  connectedCallback() {
+    this.character_limit = 200;
+    this.input = this.querySelector("input");
+    this.option = this.querySelector(".survey-option");
+    this.input.addEventListener("input", this.handleInputChange.bind(this));
+    this.option.addEventListener("click", this.handleButtonExpand.bind(this));
+    document.addEventListener(
+      "expandable-button:open",
+      this.handleButtonOpen.bind(this)
+    );
+    document.addEventListener(
+      "expandable-button:close",
+      this.handleButtonClose.bind(this)
+    );
+  }
+
+  handleInputChange() {
+    if (this.input.value != "") {
+      const event = new CustomEvent("next:enabled");
+      document.dispatchEvent(event);
+      const answer_event = new CustomEvent("answer:changed", {
+        detail: this.input.value,
+      });
+      document.dispatchEvent(answer_event);
+    }
+    if (
+      this.input.value.length > this.character_limit ||
+      this.input.value === ""
+    ) {
+      const event = new CustomEvent("next:disabled");
+      document.dispatchEvent(event);
+    }
+  }
+  handleButtonExpand() {
+    this.setAttribute("expanded", "true");
+    const event = new CustomEvent("next:disabled");
+    document.dispatchEvent(event);
+  }
+  handleButtonClose() {
+    this.removeAttribute("expanded");
+    const event = new CustomEvent("next:disabled");
+    document.dispatchEvent(event);
+  }
+
+  handleButtonOpen(e) {
+    this.input.value = e.detail;
+    this.setAttribute("expanded", "true");
+  }
+}
+
+window.customElements.define("expandable-button", expandableButton);
